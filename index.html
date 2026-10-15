@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI शिक्षा-मित्र</title>
+<style>
+:root{--bg:#10231b;--c:#183428;--ln:#3b5c4b;--t:#f3efe2;--p:#ffd166;--g:#8fd694;--r:#ff8a7a;--fs:18px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:var(--fs)/1.6 'Noto Sans Devanagari',system-ui,sans-serif;background:var(--bg);color:var(--t);padding-bottom:78px}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#0c1b15;position:sticky;top:0;z-index:5}
+h1{font-size:1.05em;color:var(--p)}h2{font-size:1.15em;margin-bottom:6px}
+button,select,input,textarea{font:inherit;border-radius:12px;border:2px solid var(--ln);background:var(--c);color:var(--t);padding:10px 14px}
+textarea{width:100%}button{cursor:pointer;min-height:48px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--p)}
+.pri{background:var(--p);color:#1a1a1a;border-color:var(--p);font-weight:700}
+main{padding:14px;max-width:760px;margin:auto}
+.box{background:var(--c);border-radius:14px;padding:14px;margin-bottom:12px;display:block}
+.tb{width:100%;text-align:left}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);background:#0c1b15}
+nav button{border:0;border-radius:0;background:none;font-size:.78em}
+nav button.on{color:var(--p);border-top:4px solid var(--p)}
+.ok{color:var(--g)}.bad{color:var(--r)}
+.bar{height:12px;background:#27483a;border-radius:8px;overflow:hidden;margin-bottom:6px}.bar i{display:block;height:100%;background:var(--g)}
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+</style></head><body>
+<header><h1>🌱 AI शिक्षा-मित्र</h1><span class="row"><select id="pf" aria-label="विद्यार्थी चुनें"></select><button onclick="ren()" aria-label="नाम बदलें">✏️</button><button onclick="fz(2)" aria-label="अक्षर बड़े करें">A+</button><button onclick="fz(-2)" aria-label="अक्षर छोटे करें">A−</button><button id="vb" onclick="vt()" aria-label="आवाज़ चालू/बंद">🔊</button></span></header>
+<main id="v"></main><nav id="nv"></nav>
+<script>
+const $=id=>document.getElementById(id),R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const h=s=>String(s).replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";");
+const ld=k=>{try{return JSON.parse(localStorage[k])}catch(e){return null}};
+let P=localStorage.pf||"0",S,tab=0,voice=localStorage.vo!=="0",fs=+localStorage.fs||18,M,Z;
+const SN={alg:"Maths: बीजगणित",frac:"Maths: भिन्न",tri:"Maths: त्रिभुज का क्षेत्रफल"};
+let DB=ld("pack")||[
+{id:"prakash",t:"प्रकाश संश्लेषण",s:"हरे पौधे सूर्य के प्रकाश, कार्बन डाइऑक्साइड (CO₂) और जल की मदद से पत्तियों के क्लोरोफिल में अपना भोजन (ग्लूकोज) बनाते हैं और ऑक्सीजन छोड़ते हैं। 6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂",c:[["पत्तियों का हरा रंग किस वर्णक से होता है?","क्लोरोफिल (पर्णहरित) से।"],["पौधों में गैसों का आदान-प्रदान किससे होता है?","पत्तियों के रंध्रों (Stomata) से।"]],z:[{q:"प्रकाश संश्लेषण में कौन-सी गैस निकलती है?",o:["CO₂","ऑक्सीजन (O₂)","नाइट्रोजन"],a:1},{q:"भोजन बनाने वाला हरा वर्णक कौन-सा है?",o:["क्लोरोफिल","हीमोग्लोबिन","मेलानिन"],a:0}]},
+{id:"newton",t:"न्यूटन के गति के नियम",s:"बल = द्रव्यमान × त्वरण (F = m × a)। प्रथम नियम: जड़त्व। द्वितीय नियम: F = ma। तृतीय नियम: हर क्रिया की बराबर और उलटी प्रतिक्रिया होती है, जैसे रॉकेट का उड़ना।",c:[["बल का SI मात्रक क्या है?","न्यूटन (N)।"],["रॉकेट किस नियम से उड़ता है?","तृतीय नियम (क्रिया-प्रतिक्रिया) से।"]],z:[{q:"बस के अचानक रुकने पर यात्री आगे झुकते हैं। यह किस नियम से है?",o:["जड़त्व (प्रथम नियम)","तृतीय नियम","गुरुत्वाकर्षण"],a:0},{q:"F = m × a किस नियम का सूत्र है?",o:["प्रथम","द्वितीय","तृतीय"],a:1}]},
+{id:"acid",t:"अम्ल, क्षार और pH",s:"अम्ल खट्टे होते हैं और नीले लिटमस को लाल करते हैं। क्षार कड़वे होते हैं और लाल लिटमस को नीला करते हैं। pH 7 से कम हो तो अम्ल, 7 हो तो उदासीन, 7 से अधिक हो तो क्षार।",c:[["शुद्ध जल का pH कितना होता है?","7 (उदासीन)।"],["दही में कौन-सा अम्ल होता है?","लैक्टिक अम्ल।"]],z:[{q:"नीबू का pH 7 से कम है। नीबू क्या है?",o:["अम्ल","क्षार","उदासीन"],a:0},{q:"अम्ल नीले लिटमस को किस रंग का करता है?",o:["लाल","हरा","पीला"],a:0}]}];
+const mv=k=>S.m[k]??.5,up=(k,c)=>{S.m[k]=mv(k)*.7+c*.3;sv()};
+function load(){S=ld("sm"+P)||{n:"छात्र "+(+P+1),m:{},c:{},ok:0,no:0}}
+function sv(){try{localStorage["sm"+P]=JSON.stringify(S);localStorage.pf=P}catch(e){}}
+function sp(t,f){if((!voice&&!f)||!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="hi-IN";speechSynthesis.speak(u)}
+function fz(d){fs=Math.max(14,Math.min(30,fs+d));document.documentElement.style.setProperty("--fs",fs+"px");try{localStorage.fs=fs}catch(e){}}
+function vt(){voice=!voice;$("vb").textContent=voice?"🔊":"🔇";try{localStorage.vo=voice?1:0}catch(e){}}
+function pf(){$("pf").innerHTML=[0,1,2].map(i=>`<option value="${i}" ${P==i?"selected":""}>${h((ld("sm"+i)||{n:"छात्र "+(i+1)}).n)}</option>`).join("")}
+$("pf").onchange=e=>{P=e.target.value;load();pf();go(0)};
+function ren(){const n=prompt("विद्यार्थी का नाम",S.n);if(n){S.n=n.slice(0,20);sv();pf()}}
+function nav(){$("nv").innerHTML=["📖 पढ़ो","✏️ Maths","📝 जाँचो","📊 प्रगति"].map((t,i)=>`<button class="${i==tab?"on":""}" onclick="go(${i})">${t}</button>`).join("")}
+function go(i){tab=i;nav();[rd,mt,qz,pg][i]()}
+/* पढ़ो + फ्लैशकार्ड */
+function rd(){const L=DB.map((_,i)=>i).sort((a,b)=>mv(DB[a].id)-mv(DB[b].id));
+$("v").innerHTML=`<div class="box"><b>आज कौन-सा विषय पढ़ें?</b><br>कमज़ोर विषय सबसे ऊपर हैं।</div>`+L.map(i=>`<button class="box tb" onclick="tp(${i})">${h(DB[i].t)} — पकड़ ${Math.round(mv(DB[i].id)*100)}%</button>`).join("")}
+function tp(i){const d=DB[i],now=Date.now();
+$("v").innerHTML=`<button onclick="rd()">⬅️ वापस</button><div class="box" style="margin-top:10px"><h2>${h(d.t)}</h2><p>${h(d.s)}</p><button class="pri" onclick="sp(DB[${i}].t+'। '+DB[${i}].s,1)">🔊 सुनो</button></div>`+d.c.map((c,j)=>{const st=S.c[d.id+j]||{b:1,d:0};return `<div class="box"><b>❓ ${h(c[0])}</b><div id="a${j}" hidden><p class="ok">${h(c[1])}</p><div class="row"><button class="pri" onclick="cm(${i},${j},1)">याद है</button><button onclick="cm(${i},${j},0)">फिर से</button></div></div><button id="s${j}" onclick="sa(${j},${i})">उत्तर देखो${st.d>now?" (अभी दोहराना ज़रूरी नहीं)":""}</button></div>`}).join("")}
+function sa(j,i){$("a"+j).hidden=false;$("s"+j).hidden=true;sp(DB[i].c[j][1])}
+function cm(i,j,ok){const k=DB[i].id+j,st=S.c[k]||{b:1,d:0};st.b=ok?Math.min(st.b+1,4):1;st.d=ok?Date.now()+[0,0,1,3,7][st.b]*864e5:0;S.c[k]=st;sv();tp(i)}
+/* Maths: हर बार नए अंक, गलती का कारण बताना, 3 स्तर के संकेत */
+const G={
+alg(){const a=R(2,6),x=R(1,5),s=x+a;return{k:"alg",q:`(x + ${a})² का मान ज्ञात करें, जब x = ${x}।`,st:[
+{ask:`कोष्ठक के अंदर x की जगह ${x} रखकर जोड़ें: ${x} + ${a} = ?`,a:s,w:[[x*x+a*a,"आपने अलग-अलग वर्ग कर दिया। पहले कोष्ठक के अंदर जोड़ें (BODMAS)।"]],h:[`x की जगह ${x} रखिए।`,`कोष्ठक में ${x} और ${a} को जोड़ना है।`]},
+{ask:`अब ${s} का वर्ग (स्वयं से गुणा) = ?`,a:s*s,w:[[s*2,"वर्ग का अर्थ 2 से गुणा नहीं, संख्या × वही संख्या है।"]],h:["संख्या को उसी संख्या से गुणा कीजिए।",`${s} × ${s} निकालिए।`]}]}},
+frac(){const d1=R(2,4),k=R(2,3),d2=d1*k,b=R(1,2);return{k:"frac",q:`1/${d1} + ${b}/${d2} को हल करें।`,st:[
+{ask:`हर ${d1} और ${d2} का ल.स.प. (LCM) = ?`,a:d2,w:[[d1*d2,"यह गुणनफल है। सबसे छोटा साझा गुणज (LCM) चाहिए।"]],h:[`वह सबसे छोटी संख्या खोजिए जिसमें ${d1} और ${d2} दोनों बँटें।`,`सबसे बड़ी संख्या ${d2} को जाँचिए।`]},
+{ask:`1/${d1} का हर ${d2} बनाना है। नया अंश = ?`,a:k,w:[[1,"हर को गुणा किया है तो अंश को भी उसी संख्या से गुणा करें।"]],h:[`हर ${d1} से ${d2} बनाने के लिए ${k} से गुणा हुआ।`,`अंश 1 × ${k} कीजिए।`]},
+{ask:`हर समान (${d2}) हो गया। कुल अंश = ${k} + ${b} = ?`,a:k+b,w:[[1+b,"पहले हर समान कीजिए, फिर अंश जोड़िए। हर आपस में नहीं जुड़ते।"]],h:["हर समान है, इसलिए केवल अंश जोड़ें।",`हर ${d2} ही रहेगा।`]}]}},
+tri(){const b=2*R(2,6),t=R(3,9);return{k:"tri",q:`आधार = ${b} सेमी और ऊँचाई = ${t} सेमी वाले त्रिभुज का क्षेत्रफल निकालें।`,st:[
+{ask:`आधार × ऊँचाई = ${b} × ${t} = ?`,a:b*t,w:[[b+t,"जोड़ना नहीं, गुणा करना है।"]],h:["गुणा कीजिए।",`${b} का पहाड़ा ${t} बार पढ़िए।`]},
+{ask:`क्षेत्रफल = ½ × ${b*t} = ?`,a:b*t/2,w:[[b*t,"त्रिभुज का क्षेत्रफल आयत का आधा होता है। 2 से भाग दीजिए।"]],h:["सूत्र: ½ × आधार × ऊँचाई।","अपने गुणनफल को 2 से भाग दीजिए।"]}]}}};
+function nq(){const ks=["alg","frac","tri"].sort((a,b)=>mv(a)-mv(b)||Math.random()-.5);M={g:G[ks[Math.random()<.6?0:R(0,2)]](),s:0,hl:0}}
+function mt(){if(!M)nq();mr("")}
+function mr(fb){const g=M.g;
+if(M.s>=g.st.length){$("v").innerHTML=`<div class="box"><b>${h(g.q)}</b></div><div class="box ok"><h2>🏆 शाबाश!</h2>सारे चरण आपने खुद हल किए।</div><button class="pri" onclick="nq();mr('')">➕ नया सवाल</button>`;sp("शाबाश! सारे चरण आपने खुद हल किए।");return}
+const s=g.st[M.s];
+$("v").innerHTML=`<div class="box"><small>${h(SN[g.k])} — पकड़ ${Math.round(mv(g.k)*100)}%</small><br><b>${h(g.q)}</b></div><div class="box"><b>चरण ${M.s+1}/${g.st.length}: ${h(s.ask)}</b><input id="ai" inputmode="none" aria-label="उत्तर" style="width:100%;margin:8px 0;font-size:1.3em"><div class="pad">${[..."1234567890/."].map(c=>`<button onclick="pk('${c}')">${c}</button>`).join("")}<button onclick="pk('<')" aria-label="मिटाएँ">⌫</button></div><div class="row"><button class="pri" onclick="ck()">✔️ जाँचो</button><button onclick="hn()">💡 संकेत</button></div><div id="fb" aria-live="polite">${fb}</div></div>`}
+function pk(c){const i=$("ai");i.value=c=="<"?i.value.slice(0,-1):i.value+c}
+function val(s){s=s.replace(/\s/g,"");if(!s)return NaN;if(s.includes("/")){const[a,b]=s.split("/");return a/b}return +s}
+function ck(){const s=M.g.st[M.s],v=val($("ai").value);
+if(isNaN(v))return mr(`<p class="bad">पहले उत्तर भरिए।</p>`);
+if(Math.abs(v-s.a)<1e-6){up(M.g.k,M.hl?.5:1);S.ok++;M.s++;M.hl=0;sv();sp("बिल्कुल सही!");return mr(`<p class="ok">✅ सही चरण!</p>`)}
+up(M.g.k,0);S.no++;sv();const w=s.w.find(x=>Math.abs(v-x[0])<1e-6),m=w?w[1]:"अभी सही नहीं है। संकेत दबाइए।";sp(m);mr(`<p class="bad">⚠️ ${h(m)}</p>`)}
+function hn(){const s=M.g.st[M.s],t=[s.h[0],s.h[1],`उत्तर ${String(s.a)[0]} से शुरू होता है।`][Math.min(M.hl,2)];M.hl=Math.min(M.hl+1,3);sp(t);mr(`<p style="color:var(--p)">💡 संकेत ${M.hl}/3: ${h(t)}</p>`)}
+/* जाँचो: कमज़ोर विषय के प्रश्न पहले */
+function qz(){const d=DB.slice().sort((a,b)=>mv(a.id)-mv(b.id)||Math.random()-.5)[0],q=d.z[R(0,d.z.length-1)],ord=q.o.map((_,i)=>i).sort(()=>Math.random()-.5);Z={d,q};
+$("v").innerHTML=`<div class="box"><small>कमज़ोर विषय पहले: ${h(d.t)}</small><p><b>${h(q.q)}</b></p>${ord.map(i=>`<button class="box tb" onclick="za(${i})">${h(q.o[i])}</button>`).join("")}<div id="zf" aria-live="polite"></div></div>`}
+function za(i){const ok=i==Z.q.a;up(Z.d.id,ok?1:0);ok?S.ok++:S.no++;sv();const m=ok?"✅ सही!":`❌ सही उत्तर: ${Z.q.o[Z.q.a]}। ${Z.d.t} फिर पढ़ें।`;sp(m);$("zf").innerHTML=`<p class="${ok?"ok":"bad"}">${h(m)}</p><button class="pri" onclick="qz()">अगला ➡️</button>`}
+/* प्रगति, शिक्षक रिपोर्ट, नई सामग्री */
+const nm=id=>SN[id]||(DB.find(d=>d.id==id)||{t:id}).t,enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+function pg(){const k=[...DB.map(d=>d.id),"alg","frac","tri"],w=k.slice().sort((a,b)=>mv(a)-mv(b))[0];
+$("v").innerHTML=`<div class="box"><h2>${h(S.n)}</h2>सही: <b>${S.ok}</b> | गलत: <b>${S.no}</b><br>📌 आज यह पढ़ें: <b>${h(nm(w))}</b></div><div class="box">`+k.map(id=>`${h(nm(id))} — ${Math.round(mv(id)*100)}%<div class="bar"><i style="width:${mv(id)*100}%"></i></div>`).join("")+`</div><div class="box"><b>शिक्षक को रिपोर्ट</b><br><button onclick="rp()">📋 रिपोर्ट कोड बनाएँ व कॉपी करें</button><textarea id="rc" rows="3" placeholder="शिक्षक: कोड यहाँ चिपकाएँ, फिर 'पढ़ें' दबाएँ"></textarea><button onclick="rr()">🔍 पढ़ें</button><div id="ro"></div></div><div class="box"><b>नई सामग्री जोड़ें (JSON)</b><textarea id="pk2" rows="3"></textarea><button onclick="ip()">➕ जोड़ें</button> <button onclick="if(confirm('इस विद्यार्थी का डेटा मिटाएँ?')){delete localStorage['sm'+P];load();pf();pg()}">🗑️ रीसेट</button></div>`}
+function rp(){const c=enc({n:S.n,m:S.m,ok:S.ok,no:S.no});$("rc").value=c;navigator.clipboard&&navigator.clipboard.writeText(c)}
+function rr(){try{const o=JSON.parse(decodeURIComponent(escape(atob($("rc").value.trim()))));$("ro").innerHTML=`<p><b>${h(o.n)}</b>: सही ${+o.ok}, गलत ${+o.no}</p>`+Object.entries(o.m).sort((a,b)=>a[1]-b[1]).map(([k,v])=>`<div>${h(nm(k))}: ${Math.round(v*100)}%</div>`).join("")}catch(e){$("ro").textContent="कोड सही नहीं है।"}}
+function ip(){try{const p=JSON.parse($("pk2").value);if(!Array.isArray(p)||!p.every(d=>d.id&&d.t&&d.s&&Array.isArray(d.c)&&Array.isArray(d.z)&&d.z.length))throw 0;DB=DB.filter(d=>!p.some(x=>x.id==d.id)).concat(p);localStorage.pack=JSON.stringify(DB);alert("सामग्री जुड़ गई।");pg()}catch(e){alert("JSON का रूप सही नहीं है।")}}
+load();pf();fz(0);$("vb").textContent=voice?"🔊":"🔇";go(0);
+</script></body></html>
